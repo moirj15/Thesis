@@ -98,36 +98,39 @@ that will be used to compare the proposed extension and the original technique.
 % describe the reason for your proposal and your project/thesis area at
 % high level.
 
-Research in the field of soft-body deformation simulation has been ongoing since the 1980's. 
-Originating with the seminal paper by Terzopoulos \etal, Elastically Deformable Models 
+Research in the field of soft-body deformation simulation has been ongoing since the 1980's, 
+originating with the seminal paper by Terzopoulos \etal, Elastically Deformable Models 
 \cite{Elastically-Deformable-Models}. Since then, the field has 
 grown to encompass several areas of research for achieving realistic soft-body deformations. These
 areas include Mass-Spring systems and Finite Element Method systems. 
 % TODO: reference mass-spring and fem papers
-These systems are typically
-used in animation, surgery simulation, and video games.
+These systems are typically used in animation, surgery simulation, and video games.
 
-Due to the limitations at the time, systems which simulate soft-body deformations typically didn't
+Due to the limitations at the time, solutions for performing soft-body deformations typically didn't
 operate at real-time speeds. These limitations aren't as apparent in systems that don't operate at
 real-time speeds, such as animation systems. However, systems such as surgery simulators and video
 games must operate at real-time speeds. So it's vital that any soft-body deformation simulation that
 they make use of are as fast as possible. With research into new techniques and the advent of modern
-hardware, real-time systems for soft-body have come into existence. Some examples of real-time 
-systems are Stable Real-Time Deformations \cite{Stable-Real-Time-Deformations} and Deformable Object 
+hardware, solutions which operate in real-time have come into existence. Some examples of solutions 
+which achieved real-time speeds
+are Stable Real-Time Deformations \cite{Stable-Real-Time-Deformations} and Deformable Object 
 Simulation in Virtual Environment \cite{Deformable-Object-Simulation-in-Virtual-Environment}.
 
-Another system which takes a different approach was described in the work done by Müller \etal The 
-paper described a system which can perform motion, deformation, and fracture 
+Another solution which took a different approach was described in the work done by Müller \etal 
+Their solution was able to perform motion, deformation, and fracture 
 simulations in real-time. To achieve this, Müller \etal utilized a voxelized representation of 
 meshes, or voxel-meshes, generated at run time \cite{Muller_Teschner_Gross}. These voxel-meshes 
 contained references
 to the mesh used to create them, so that when a voxel  was modified by some force the portion of 
 the mesh that it referenced was also modified. The forces for deformation and motion were calculated 
 using rigid-body physics, while the forces for fracturing were calculated using the finite element 
-method. 
+method. However, the described solution does have some draw backs. The voxelization of meshes at run
+time can be costly, especially for models with a high vertex count. Also, a higher voxelization 
+count would be required to improve upon the accuracy of deformations for a specific object. 
 
-The remainder of this proposal focuses on an extension to the technique used by Müller \etal
-to improve the performance and realism of soft-body deformations. This extension will make use of 
+The remainder of this proposal focuses on a new technique which aims to improve upon the work
+done by Müller \etal by combating the previously mentioned drawbacks. To achieve this, the proposed
+technique will make use of 
 Bézier curves and deformable voxels. The Bézier curves will be used to control the positions of the
 mesh's vertices and the control points of the Bézier curves will be placed on the hull of the voxels.
 The deformable voxels will allow these control points to move, resulting in the deformation of the 
@@ -201,8 +204,9 @@ accurate results.
 Mass-Spring systems treat objects as a network of mass-nodes and springs. As the name implies, 
 mass-nodes are points with a specified mass. These nodes are connected to other nodes in the object
 with a number of springs. These springs are typically treated as ideal weightless springs. The 
-configuration of these springs can vary depending on the desired effect. An illustration of this 
-hierarchy can be seen in Figure \ref{}.
+configuration of these springs can vary depending on the desired effect. 
+% An illustration of this 
+% hierarchy can be seen in Figure \ref{}.
 Once the mass-nodes and 
 spring network is configured, physical interactions can easily and quickly be simulated by applying
 hooke's law, \(F_s = kx\), to each node. 
@@ -240,8 +244,66 @@ length. They are also connected to an imaginary frame within the body. These spr
 compressive forces that might result in inaccurate volume changes. Their approach achieved real-time 
 speeds for meshes of approximately 7000 triangles. 
 
-\subsection{muller}
+\subsection{Physically-Based Simulation of Objects Represented by Surface Meshes}
 %TODO: add sub-section for muller's paper and it's shortcomings
+
+The paper by Müller \etal describes a system which utilizes voxelized meshes for deformation and
+fracturing. The described system generates voxels at run time. These voxels are augmented with 
+several attributes for use in simulation, which can be seen in tables 
+\ref{tab:CubeElementAttributes} and \ref{tab:VertexAttributes}. 
+These attributes are used both for applying 
+deformations to the mesh and for performing the necessary physics simulation. The physics simulation 
+necessary for animation of the mesh can be implemented using FEM or with a rigid body physics 
+simulation. Although, the implementation described in the paper utilizes a FEM system. A FEM
+system is also used to calculate the forces for simulating surface fracture. During simulation, the 
+positions of the voxels are modified. These changes in position are then
+applied to the triangles contained by the effected voxels. Resulting in surface deformations. The 
+resulting simulation was able to produce deformations and fractures of meshes consisting of 23,000 
+triangles and an equivalent voxelized representation of 800 voxels at a rate of 10 to 15 frames per
+second.
+
+The described system does come with some draw backs. For instance, the voxelization of meshes at
+run time is a somewhat costly for complex models and unnecessary step. Furthermore, in order to 
+improve the accuracy of deformations a higher voxelization count would be needed, which would 
+negatively impact performance. 
+
+
+\begin{table}
+  
+\begin{center}
+ \begin{tabular}{|c | c|} 
+ \hline
+ Attributes & Description \\ [0.5ex] 
+ \hline\hline
+ \(x, y, z\)& Integer position indices with respect to the bounding box of the surface  \\ 
+ \hline
+ \(v[8]\) & Pointers to vertices  \\
+ \hline
+ triangles & Pointer to the list of triangles that intersect the element\\
+ \hline
+\end{tabular}
+\end{center}
+
+\caption{Cube element attributes described in Müller \etal}\label{tab:CubeElementAttributes}
+\end{table}
+
+\begin{table}
+  \begin{center}
+    \begin{tabular}{|c | c|} 
+      \hline
+      Attributes & Description \\ [0.5ex] 
+      \hline\hline
+      position & Position in the deformed mesh  \\ 
+      \hline
+      velocity & Velocity for dynamic simulations  \\
+      \hline
+      mass & Mass lumped from all adjacent cubes\\
+      \hline
+    \end{tabular}
+  \end{center}
+  
+  \caption{Vertex attributes described in Müller \etal}\label{tab:VertexAttributes}
+\end{table}
 
 %TODO: rename to solution and give a more in depth/high level description of the changes i would make
 %TODO: add pseudo code here
@@ -289,11 +351,18 @@ seen in Figure \ref{fig:VoxelizationAlgorithm}.
 In order for the shape of the Bézier curves to change their control points must be moved somehow.
 The addition of deformable voxels allows this to occur. As voxels are deformed, the control points
 which are attached to the hull will be adjusted based on the voxel deformation. A simplified 
-two-dimensional example can be seen in Figure \ref{}. Here we see the direction which force is 
+two-dimensional example can be seen in Figure \ref{fig:Extension2DExample}. Here we see the direction 
+which force is 
 applied to the voxel and the resulting voxel deformation. We also see how the deformation modifies
 the position of the control point, the resulting change in the Bézier curve, and the modified 
 position of the vertices.
 
+\begin{figure}[h]
+  \centering
+  \includegraphics{Extension2DExample}
+  \caption{Deformation example in 2D}
+  \label{fig:Extension2DExample}
+\end{figure}
 
 % Bezier curves
 % shall be constructed using the edges contained within each voxel and their starting and ending
@@ -303,7 +372,8 @@ position of the vertices.
 % modification will then be used to modify the mesh, creating the deformation.
 
 My hypothesis is that the proposed extension will provide soft-body deformations that are more
-realistic and more efficient to compute than the original technique. In theory, the use of the
+realistic to the human eye and more efficient to compute, leading to a higher frame rate, than the 
+original technique. In theory, the use of the
 Bezier curves and deformable voxels should allow for a low resolution voxel-mesh to achieve similar
 deformations to that of a high resolution voxel-mesh.
 
@@ -551,11 +621,30 @@ need to be collected from an online user study.
 \subsection{Performance Data Collection}
 
 A number of metrics will be collected in order to evaluate the performance claims made in the
-hypothesis. These include the average frame rate during deformation simulation, average number of
-vertices per voxel, and average number of Bézier curves per voxel. The average frame rate will be 
+hypothesis. A list of these metrics can be 
+seen in Table \ref{tab:TimingEvaluationMetrics}. The average frame rate will be 
 used to directly evaluate and compare the performance of the two implementations, as the 
 performance of the techniques will directly affect the frame rate. The average vertices and Bézier 
 curves per voxel will be used to further evaluate the effectiveness of the proposed extension.
+
+\begin{table}
+  \begin{center}
+    \begin{tabular}{|c|} 
+      \hline
+      % Metric & Description \\ [0.5ex] 
+      % \hline\hline
+      Avg. Frame Rate  \\ 
+      \hline
+      Avg. Vertices per voxel   \\
+      \hline
+      Avg. number of Bézier curves per voxel \\
+      \hline
+    \end{tabular}
+  \end{center}
+  
+  \caption{Timing evaluation metrics}\label{tab:TimingEvaluationMetrics}
+\end{table}
+
 
 \subsection{Visual Evaluation Data Collection}
 
@@ -571,11 +660,11 @@ study to take place IRB approval will be required.
 \section{Roadmap}
 The following is a tentative schedule for the completion of this thesis:
 \begin{itemize}
-  \item End of February: Both applications will be completed.
-  \item End of March: Data will be collected for the evaluation. First draft of thesis will be 
+  \item End of May: Both applications will be completed.
+  \item End of June: Data will be collected for the evaluation. First draft of thesis will be 
   completed.
-  \item End of April: Second draft and final draft of the thesis will be completed.
-  \item Beginning of May: Thesis defense.
+  \item End of July: Second draft and final draft of the thesis will be completed.
+  \item Beginning of August: Thesis defense.
 \end{itemize}
 
 % Here you need to describe your project plan, with dates and deliverables. 

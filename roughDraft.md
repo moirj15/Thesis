@@ -54,7 +54,7 @@ mesh's vertices and the control points of the Bézier curves will be placed on t
 The deformable voxels will allow these control points to move, resulting in the deformation of the 
 mesh. In theory, this will result deformations which are less expensive to compute and are more 
 accurate.
-%TODO: add a paragraph explaining my extension to muller
+<!-- %TODO: add a paragraph explaining my extension to muller -->
 
 # Background
 <!-- % This section should be sufficient for the reader to understand the
@@ -87,7 +87,7 @@ The earliest application of FEM to soft-body deformations was in the work done b
 elastic theory. FEM was used to discretize the equations of motion, with 
 focus on surfaces, to achieve their deformations. This yielded realistic results for a number of 
 simple objects. 
-%TODO: add overview of FEM
+<!-- %TODO: add overview of FEM -->
 
 FEM systems can be used to achieve fairly realistic deformations. However, the calculations that 
 need to be done are fairly expensive, so achieving real-time deformations is difficult. Although,
@@ -132,9 +132,9 @@ Mass-Spring systems usually make use of several types of springs to create their
 instance, in the work done by Chen \etal \cite{Physically-Based-Animation-of-Volumetric-Objects} a
 combination of structural, shear, and flexion springs are used. Structural springs are used to
 simulate deformations that occur under compressive forces, shear springs are used to simulate shear
-forces, and flexion springs are used to simulate flexion deformations. %TODO: re-word
+forces, and flexion springs are used to simulate flexion deformations. 
 These springs are connected to mass-nodes and the stretching and compression of theses springs 
-creates the deformations. For the case of this appear, the mass nodes are connected in a voxel 
+creates the deformations. In the approach taken by Chen \etal, the mass nodes are connected in a voxel 
 structure. As forces are applied to the structure, these connections persist, allowing deformations
 to correctly propagate across voxels. However, as a drawback the object has to be rendered as a 
 series of voxels. The work done by chen \etal was able to run at interactive speeds.
