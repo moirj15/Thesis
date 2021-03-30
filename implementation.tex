@@ -1,0 +1,45 @@
+\chapter{Implementation}
+
+\subsection{Hypothesis Validation}
+
+To Validate the claims made in the hypothesis, the original technique described by Müller \etal and
+the proposed extension will need to be implemented. These implementations will then be used to 
+collect data for evaluating the hypothesis.
+
+\subsection{Design}
+
+The original technique and the proposed extensions will be implemented as two applications. The 
+first application will be used to generate the voxel-meshes that are needed by both techniques. The
+second application will perform the physics simulation. This approach was chosen to remove the need
+for voxelization, which can be a costly operation when implemented in a naive fashion, to occur at
+simulation run time.
+
+\subsection{Libraries and APIs}
+
+Both applications will make use of a number of libraries and APIs to achieve their respective goals. 
+The following is a comprehensive list of the libraries that will be used:
+
+% TODO: links
+\begin{itemize}
+  \item Bullet Physics: An open source physics engine.
+  \item OpenGL: The Open Graphics Library.
+  \item GLM: A math library compatible with GLSL math functions.
+  \item GLAD: An OpenGL extension loader.
+  \item nlohmann/json.hpp: An open source json library for C++.
+  \item Dear ImGui: A simple to use, immediate-mode GUI library.
+\end{itemize}
+%% Obviously you need to delete these lines when you have written up your text
+
+% (Note: this chapter may be merged with Chapter 2 to have a combined Design 
+% and Implementation chapter, if more appropriate.)
+
+% \begin{itemize}
+% \item{} Software details (use as many section as needed for class design, 
+% database tables, middleware, etc.)
+
+% \item{} Make sure you present and comment on any interesting issues about
+% your implementation that you are proud of or unhappy with
+
+% \item{} Skip code listing and specific UML diagrams, etc. to an appendix
+
+% \end{itemize}
