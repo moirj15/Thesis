@@ -7,15 +7,13 @@
 % \item{} Compare and contrast design with other approaches (related work) 
 % \end{itemize}
 
-\subsection{Design}
-
 The original technique and the proposed extensions will be implemented as two applications. The 
 first application will be used to generate the voxel-meshes that are needed by both techniques. The
 second application will perform the physics simulation. This approach was chosen to remove the need
 for voxelization, which can be a costly operation when implemented in a naive fashion, to occur at
 simulation run time.
 
-\subsection{Libraries and APIs}
+\section{Libraries and APIs}
 
 Both applications will make use of a number of libraries and APIs to achieve their respective goals. 
 The following is a comprehensive list of the libraries that will be used:
@@ -30,7 +28,7 @@ The following is a comprehensive list of the libraries that will be used:
   \item Dear ImGui: A simple to use, immediate-mode GUI library.
 \end{itemize}
 
-\subsection{Voxelization Application Design}
+\section{Voxelization Application Design}
 
 The voxelization application will require the following components: A simple GUI, a mesh loader,
 a voxelizer, a renderer, and a voxel-mesh serializer. The renderer and voxel-mesh serializer will 
@@ -55,7 +53,7 @@ proposed voxelization algorithm can be seen in figure \ref{fig:VoxelizationAlgor
 % TODO talk about renderer and serializer
 
 
-\subsection{Physics Simulation Application Design}
+\section{Physics Simulation Application Design}
 
 The physics simulation application will require the following components: a GUI, a physics 
 engine, a renderer, a voxel-mesh manager, a voxel-mesh deserializer, and a scene serializer. The 
@@ -93,7 +91,7 @@ add objects to the physics simulation, a handle to a voxel-mesh is passed to the
 underlying implementation would then use this handle to retrieve any information that it needs to 
 setup the object for simulation. 
 
-\subsection{Shared Library Design} \label{SharedLibrary}
+\section{Shared Library Design} \label{SharedLibrary}
 
 Due to the fact that a significant amount of functionality is shared between the Voxelization
 application and the Physics Simulation application, a shared library will be used. This shared
