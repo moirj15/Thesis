@@ -33,27 +33,100 @@ designed and implemented.
 
 \section{Shared Library Design} \label{SharedLibrary}
 
-Due to the fact that a significant amount of functionality is shared between the Voxelization
-application and the Physics Simulation application, a shared library will be used. This shared
-library will contain the necessary implementations and interfaces needed by the two applications. 
-The contents of this library in relation to its use by the applications can be seen in figure
-\ref{fig:SharedLibraryUML}.
+%% old
+% Due to the fact that a significant amount of functionality is shared between the Voxelization
+% application and the Physics Simulation application, a shared library will be used. This shared
+% library will contain the necessary implementations and interfaces needed by the two applications. 
+% The contents of this library in relation to its use by the applications can be seen in figure
+% \ref{fig:SharedLibraryUML}.
+%% end old
+
+% TODO: need to flesh this out a bit
+The main components of the library are the MeshManager class, the serilization and 
+de-serialization routines, the representation of meshes, voxel-meshes, and Bezier curves, and the
+renderer.
+
+%% TODO: maybe for future use
+% \begin{figure}[h]
+%   \centering
+%   \includegraphics[width=0.8\textwidth, trim={0cm 0cm 15cm 0cm}]{SharedLibraryUML}
+%   \caption{Shared Library UML Diagram}
+%   \label{fig:SharedLibraryUML}
+% \end{figure}
+
+\subsubsection{MeshManager}
+The MeshManager acts as a simple database for storing meshes and voxelmeshes. A UML describing its
+basic structure can be seen in \ref{fig:MeshManagerUML}. When a Mesh is given to the MeshManager, a
+MeshHandle will be returned to the callee. WHich will allow the Mesh to referenced in the future.
+THis handle will also be used to submit VoxelMeshes, as both applications will require that Meshes 
+are paired with their VoxelMesh representation. Both Meshes and VoxelMeshes will be stored in 
+HashMaps with their respective handle as the key. The next available handle will also be tracked
+to prevent duplicate handles from being used.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.8\textwidth, trim={0cm 0cm 15cm 0cm}]{SharedLibraryUML}
-  \caption{Shared Library UML Diagram}
-  \label{fig:SharedLibraryUML}
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{MeshManager UML Diagram}
+  \label{fig:MeshManagerUML}
 \end{figure}
 
-\subsubsection{Voxel-Mesh Serializer}
-The voxel-mesh serialization and deserialization will be handled by a single class. This class will
-manage the resources of the file containing the serialized voxel-mesh. 
-This class will also utilize the nlohmann/json.hpp library for serializing to JSON.
-% the underlying serialization library, which will be discussed in section \ref{Serialization}. 
-Since this class handles both serialization and deserialization, it's possible to overwrite the 
-contents of a file by mistake. To remedy this, on construction the class will take in a parameter to 
-specify if its read-write permissions. 
+\subsubsection{Serialization and De-Serialization}
+
+The serialization interface will provide a way to convert meshes and voxel-meshes into a format 
+which can then be read back from disk. This will provide the means for the voxelization application
+to provide the data sets needed by the physics application. Rather than inventing a new file format 
+for serialization, an existing format will be used. Ideally, this format will be human readable with 
+plenty of existing libraries so a parser doesn't have to be written from scratch. It's for these
+reasons that the JSON file format was chosen for serialization. The contents of the JSON file will 
+be split into 3 parts: a header, the serialized mesh, and the serialized voxel-mesh.
+
+The header will store the path of the file that the mesh originated from, along with the parameters 
+that werer used for voxelization. This will be used mainly to help organize the serialized files.
+The exact format of the header section can be seen in \ref{fig:SerializationHeader}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{Serialization header format}
+  \label{fig:SerializationHeader}
+\end{figure}
+
+The serialized mesh section will consist of two arrays of floating point values. These values 
+will reperesent the mesh's vertices and normals. There will also be an array of integers 
+representing the triangle indices.
+
+The serialized voxel-mesh section will consist of two parts. The first will be a simple header and 
+the second will be an array of voxels. The simple header will contain 3 integers which will 
+represent the length, width, and height of the voxel-mesh as measured in voxels. Then a floating 
+point value will be used to describe the initial size of the voxels. The serialized voxels will each
+contain a three-component integer coordinate which represents its position in the voxel-mesh, 
+ranging from `[0, 0, 0]' to `[Length - 1, Width - 1, Height - 1]'. This will be used as the key for 
+the voxel's entry in the voxel-mesh's HashMap. This will be followed by an array of booleans 
+indicating the existance of the voxel's neighbors. With each index representing a neighbor on one 
+of the six faces of the voxel, as seen in \ref{fig:VoxelNeighbors}. Next, there will be an array of
+integers which will contain the indices of the vertices contained by the voxel. Lastly, will be the 
+serialized Bezier curves. Which will consist of an array of the control points, the values of \[t\]
+describing the start and end of the line, and an array of indices of the effected points.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{Voxel neighbors index representation (TODO: better name)}
+  \label{fig:VoxelNeighbors}
+\end{figure}
+
+%% old
+% The voxel-mesh serialization and deserialization will be handled by a single class. This class will
+% manage the resources of the file containing the serialized voxel-mesh. 
+% This class will also utilize the nlohmann/json.hpp library for serializing to JSON.
+% % the underlying serialization library, which will be discussed in section \ref{Serialization}. 
+% Since this class handles both serialization and deserialization, it's possible to overwrite the 
+% contents of a file by mistake. To remedy this, on construction the class will take in a parameter to 
+% specify if its read-write permissions. 
+%% end old
 
 \subsubsection{Renderer}
 % Renderer
