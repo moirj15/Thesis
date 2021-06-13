@@ -71,6 +71,34 @@ to prevent duplicate handles from being used.
   \label{fig:MeshManagerUML}
 \end{figure}
 
+\subsubsection{Object Data Structures}
+
+A collectin of data structures will need to be shared between the applications. THese data 
+structures will be used to represent meshes, voxel-meshes, voxels, and bezier curves.
+
+The mesh structure will consist of two arrays of floating point values which will contain the mesh's
+vertex positions and vertex normals. This structure will also contain an integer array containing 
+the mesh's triangle indices.
+
+The voxel-mesh structure will contain a three component vector of integers which will define the 
+length, width, and height of the voxel-mesh as measured in voxels. This structure will also contain 
+a floating point value which specifys the size of the voxels length, width, and height before any 
+deformations have occured. This along with the dimmension vector can be used to calculate the 
+physical size of the voxel-mesh in world space units. Finally, this structure will contain a
+hash-map ofvoxels with three component vectors of integers as the keys. The keys represent the
+voxels position in the voxel-mesh. % consider using a linear array instead.
+
+The voxel structure will contain thre vectors, each containing three components. These vectors will 
+define the voxels current dimmensions, position in world space, and position relative to the center
+of the voxel's corresponding voxel-mesh. This structure will also contain a six element array of 
+booleans, which will indicate the presence or lack of neighbor voxels. Each index will represent a 
+neighbor on one of the six faces of the voxel as seen in \ref{fig:VoxelNeighbors}.
+
+The Bezier structure will contain an array of three or four control points, each of which will be 
+represented as a three component floating point vector. This structure will also contain two 
+floating point values which represent the start and end of the curve that can be constructed using 
+the Bezier curve.
+
 \subsubsection{Serialization and De-Serialization}
 
 The serialization interface will provide a way to convert meshes and voxel-meshes into a format 
@@ -102,12 +130,12 @@ the second will be an array of voxels. The simple header will contain 3 integers
 represent the length, width, and height of the voxel-mesh as measured in voxels. Then a floating 
 point value will be used to describe the initial size of the voxels. The serialized voxels will each
 contain a three-component integer coordinate which represents its position in the voxel-mesh, 
-ranging from `[0, 0, 0]' to `[Length - 1, Width - 1, Height - 1]'. This will be used as the key for 
+ranging from [0, 0, 0] to [Length - 1, Width - 1, Height - 1]. This will be used as the key for 
 the voxel's entry in the voxel-mesh's HashMap. This will be followed by an array of booleans 
 indicating the existance of the voxel's neighbors. With each index representing a neighbor on one 
 of the six faces of the voxel, as seen in \ref{fig:VoxelNeighbors}. Next, there will be an array of
 integers which will contain the indices of the vertices contained by the voxel. Lastly, will be the 
-serialized Bezier curves. Which will consist of an array of the control points, the values of \[t\]
+serialized Bezier curves. Which will consist of an array of the control points, the values of \(t\)
 describing the start and end of the line, and an array of indices of the effected points.
 
 \begin{figure}[h]
@@ -129,59 +157,69 @@ describing the start and end of the line, and an array of indices of the effecte
 %% end old
 
 \subsubsection{Renderer}
+
+The renderer will be fairly straight forward, as it will only need to display meshes and 
+voxel-meshes. The renderer will provide methods for loading meshes and voxel-meshes into resources 
+for the GPU. These methods will take in a mesh-handle to a mesh or voxel-mesh that is present in the
+MeshManager. The renderer will also have methods for rendering meshes and voxel-meshes. Which will 
+again take a mesh-handle, along with the current camera state, and any transforms that should be 
+applied to the meshes that will be rendered.
+
 % Renderer
 
-The renderer will consist of two classes, one to act as a frontend and the other to act as a
-backend. The frontend will manage all resources associated with the scene. This includes the 
-tracking of what objects are in the scene, their positions, and their various physical attributes.
-The frontend will also provide a collection of methods to add and remove objects to the scene and to 
-draw the current scene. These methods will convert the scene into a collection of handles which the
-backend will use to draw the scene.
+%% old
+% The renderer will consist of two classes, one to act as a frontend and the other to act as a
+% backend. The frontend will manage all resources associated with the scene. This includes the 
+% tracking of what objects are in the scene, their positions, and their various physical attributes.
+% The frontend will also provide a collection of methods to add and remove objects to the scene and to 
+% draw the current scene. These methods will convert the scene into a collection of handles which the
+% backend will use to draw the scene.
 
-The backend will manage all resources used by OpenGL. To achieve this, a series of caches will be 
-used. These caches will consist of key-value pairs, where the key is some generated integer and the
-value is what data the cache is managing. These caches will be used to manage vertex data, textures,
-and shader programs. The backend will also handle all OpenGL state and function calls.
+% The backend will manage all resources used by OpenGL. To achieve this, a series of caches will be 
+% used. These caches will consist of key-value pairs, where the key is some generated integer and the
+% value is what data the cache is managing. These caches will be used to manage vertex data, textures,
+% and shader programs. The backend will also handle all OpenGL state and function calls.
+%% end old
 
-\subsubsection{Base UI}
-% Base UI
+% \subsubsection{Base UI}
+% % Base UI
 
-Since both applications will be using the same GUI library, it makes sense for a common interface
-to be designed. This interface will handle the initialization and de-initialization of the library.
-The interface will also provide methods for retrieving and setting information for the GUI. The
-GUIs implemented by the Voxelization and Physics Simulation applications will inherit from this
-interface and implement the specific layout of the GUI that meets their needs.
+% Since both applications will be using the same GUI library, it makes sense for a common interface
+% to be designed. This interface will handle the initialization and de-initialization of the library.
+% The interface will also provide methods for retrieving and setting information for the GUI. The
+% GUIs implemented by the Voxelization and Physics Simulation applications will inherit from this
+% interface and implement the specific layout of the GUI that meets their needs.
 
-% Math Utils
-\subsubsection{Math Utils}
+% % Math Utils
+% \subsubsection{Math Utils}
 
-The physics engine that will be used provides their own math library. However, the two applications
-will make use of a different math library. So, to reduce the difficulties of needing to constantly
-convert from data structures used by one library to the other a collection of conversion functions
-will be used. 
+% The physics engine that will be used provides their own math library. However, the two applications
+% will make use of a different math library. So, to reduce the difficulties of needing to constantly
+% convert from data structures used by one library to the other a collection of conversion functions
+% will be used. 
 
-\subsubsection{Camera}
-% Camera
+% \subsubsection{Camera}
+% % Camera
 
-Both applications will need a camera which can easily be moved around based on inputs by the user.
-A single class will be used to fit these needs. This class will manage the position and rotation
-of the camera. This class will also provide a method to generate the camera matrix for use by the
-renderer. Several methods will be provided to allow the camera's position to be modified by 
-providing a new position vector or by providing a velocity vector. Methods will also be provided for
-modifying the rotation of the camera by providing rotation matrices or vectors encoding euler angles.
+% Both applications will need a camera which can easily be moved around based on inputs by the user.
+% A single class will be used to fit these needs. This class will manage the position and rotation
+% of the camera. This class will also provide a method to generate the camera matrix for use by the
+% renderer. Several methods will be provided to allow the camera's position to be modified by 
+% providing a new position vector or by providing a velocity vector. Methods will also be provided for
+% modifying the rotation of the camera by providing rotation matrices or vectors encoding euler angles.
 
 % Voxel objects
-\subsubsection{Voxel objects} \label{VoxelObjects}
+% \subsubsection{Voxel objects} \label{VoxelObjects}
 
-Some data structures used in voxelization and deformation will be shared between the applications.
-These include the Bezier curve, Voxel, and the voxel-mesh. The Bezier curve structure will contain
-the control points that define the curve and the values along the curve that can be used to 
-calculate the position of the vertex that they control. This structure also provides methods for
-calculating the position of this vertex. The Voxel structure contains a list of Bezier curves, a 
-list of vertices, a position, a delta position, and its position relative to the center of the 
-voxel-mesh that contains it. The voxel-mesh contains a mesh object, the extents of the voxel-mesh 
-in voxel space, the size of the voxel-mesh in object space, and a map which contains the voxels and
-uses their position in voxel space as the key.
+% Some data structures used in voxelization and deformation will be shared between the applications.
+% These include the Bezier curve, Voxel, and the voxel-mesh. The Bezier curve structure will contain
+% the control points that define the curve and the values along the curve that can be used to 
+% calculate the position of the vertex that they control. This structure also provides methods for
+% calculating the position of this vertex. The Voxel structure contains a list of Bezier curves, a 
+% list of vertices, a position, a delta position, and its position relative to the center of the 
+% voxel-mesh that contains it. The voxel-mesh contains a mesh object, the extents of the voxel-mesh 
+% in voxel space, the size of the voxel-mesh in object space, and a map which contains the voxels and
+% uses their position in voxel space as the key.
 
 \section{Libraries and APIs}
 
@@ -200,25 +238,29 @@ The following is a comprehensive list of the libraries that will be used:
 
 \section{Voxelization Application Design}
 
-The voxelization application will require the following components: A simple GUI, a mesh loader,
-a voxelizer, a renderer, and a voxel-mesh serializer. The renderer and voxel-mesh serializer will 
-be provided by the shared library, which is discussed in section \ref{SharedLibrary}. 
+The Voxelization application will require several modules for the management of resources 
 
-The simple GUI would allow a user to select a mesh to voxelize, specify some parameters for the 
-voxelizer, and specify a location to save the resulting voxel-mesh. Since the needs of the GUI are 
-so simple, a complex GUI library won't be needed. So the Dear ImGui library will suffice.
-% TODO: consider including the mock-up used in the independent study?
+%% Old
+% The voxelization application will require the following components: A simple GUI, a mesh loader,
+% a voxelizer, a renderer, and a voxel-mesh serializer. The renderer and voxel-mesh serializer will 
+% be provided by the shared library, which is discussed in section \ref{SharedLibrary}. 
 
-The mesh loader would need to convert the contents of a specified file into a mesh usable by the
-application. Since there already exists many file formats for the exporting and importing of meshes
-produced by 3D modeling applications, a custom format won't be used. Preferably, the file format 
-would be simple to reduce the complexity of the design and implementation of the mesh loader. As
-such, the Wavefront OBJ file format will be used, since it meets the previously stated criteria.
+% The simple GUI would allow a user to select a mesh to voxelize, specify some parameters for the 
+% voxelizer, and specify a location to save the resulting voxel-mesh. Since the needs of the GUI are 
+% so simple, a complex GUI library won't be needed. So the Dear ImGui library will suffice.
+% % TODO: consider including the mock-up used in the independent study?
 
-The voxelizer should take a mesh, loaded by the mesh loader, and convert it into a voxel-mesh. To
-achieve this, a naive voxelization algorithm will be used. Since the voxels also need to contain
-information for the Bezier curves, it will also generate this information. The pseudo code for the 
-proposed voxelization algorithm can be seen in figure \ref{fig:VoxelizationAlgorithm}.
+% The mesh loader would need to convert the contents of a specified file into a mesh usable by the
+% application. Since there already exists many file formats for the exporting and importing of meshes
+% produced by 3D modeling applications, a custom format won't be used. Preferably, the file format 
+% would be simple to reduce the complexity of the design and implementation of the mesh loader. As
+% such, the Wavefront OBJ file format will be used, since it meets the previously stated criteria.
+
+% The voxelizer should take a mesh, loaded by the mesh loader, and convert it into a voxel-mesh. To
+% achieve this, a naive voxelization algorithm will be used. Since the voxels also need to contain
+% information for the Bezier curves, it will also generate this information. The pseudo code for the 
+% proposed voxelization algorithm can be seen in figure \ref{fig:VoxelizationAlgorithm}.
+%% end old
 
 % TODO talk about renderer and serializer
 
