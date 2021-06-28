@@ -4,12 +4,12 @@ LATEX=latex
 PDFLATEX=pdflatex
 BIBTEX=bibtex
 
-report:
-	$(PDFLATEX) Report
-	$(BIBTEX) Report
-	$(PDFLATEX) Report
-	$(PDFLATEX) Report
-	chmod 660 *.dvi *.aux *.pdf *.bbl *.blg *.log *.lof *.lot *.toc
+#report:
+#	$(PDFLATEX) Report
+#	$(BIBTEX) Report
+#	$(PDFLATEX) Report
+#	$(PDFLATEX) Report
+#	chmod 660 *.dvi *.aux *.pdf *.bbl *.blg *.log *.lof *.lot *.toc
 
 thesis:
 	$(PDFLATEX) Thesis

@@ -8,7 +8,7 @@
 % \end{itemize}
 
 %% Original from proposal
-% The original technique and the proposed extensions will be implemented as two applications. The 
+% The original technique and the proposed extensions will be implemented as two applications. The
 % first application will be used to generate the voxel-meshes that are needed by both techniques. The
 % second application will perform the physics simulation. This approach was chosen to remove the need
 % for voxelization, which can be a costly operation when implemented in a naive fashion, to occur at
@@ -31,12 +31,12 @@ Such as rendering, management of the various meshes and voxelmeshes, serializati
 utilities. Due to this fact, a small library of common classes, interfaces, and utilities will be 
 designed and implemented.
 
-\section{Shared Library Design} \label{SharedLibrary}
+\section{Shared Library Design}\label{SharedLibrary}
 
 %% old
 % Due to the fact that a significant amount of functionality is shared between the Voxelization
 % application and the Physics Simulation application, a shared library will be used. This shared
-% library will contain the necessary implementations and interfaces needed by the two applications. 
+% library will contain the necessary implementations and interfaces needed by the two applications.
 % The contents of this library in relation to its use by the applications can be seen in figure
 % \ref{fig:SharedLibraryUML}.
 %% end old
@@ -148,11 +148,11 @@ describing the start and end of the line, and an array of indices of the effecte
 
 %% old
 % The voxel-mesh serialization and deserialization will be handled by a single class. This class will
-% manage the resources of the file containing the serialized voxel-mesh. 
+% manage the resources of the file containing the serialized voxel-mesh.
 % This class will also utilize the nlohmann/json.hpp library for serializing to JSON.
-% % the underlying serialization library, which will be discussed in section \ref{Serialization}. 
-% Since this class handles both serialization and deserialization, it's possible to overwrite the 
-% contents of a file by mistake. To remedy this, on construction the class will take in a parameter to 
+% % the underlying serialization library, which will be discussed in section \ref{Serialization}.
+% Since this class handles both serialization and deserialization, it's possible to overwrite the
+% contents of a file by mistake. To remedy this, on construction the class will take in a parameter to
 % specify if its read-write permissions. 
 %% end old
 
@@ -165,13 +165,141 @@ MeshManager. The renderer will also have methods for rendering meshes and voxel-
 again take a mesh-handle, along with the current camera state, and any transforms that should be 
 applied to the meshes that will be rendered.
 
+\section{Voxelization Application Design}
+
+The voxelization application will require several modules for management of various recourses, producing the
+voxelization, and displaying and storing the results of the voxelization. These modules will include a GUI,
+model loader, voxelizer, and some glue logic to tie everything togethor. The previously discussed shared library
+will also be used. Specifically, the MeshManager, Renderer, and Serializer will be used.
+
+\subsection{GUI}
+
+The GUI will be fairly straightforward, as this application is concerned with few things for input and output.
+For the voxelization process a limited number of inputs are rewuired. THese include the voxel size, whether the
+resulting voxelization should fill the volume contained by the outer hull of voxels, and the location of the
+source mesh. We will also require destination file for the resulting voxelization. With these requirements in
+mind, the ui mock-up seen in FIG N was designed.
+
+\subsection{OBJ Loader}
+
+As previously stated, source meshes for voxelization will have to be loaded off of disc. This nescitates both a
+source file format to load from and someway to convert this into the mesh representation that will be used
+during voxelization. This file format should be relatively simple, such that the necessary parser will not be
+overly complex to design and implement. With this in mind, the Wavefront-OBJ format was chosen.
+
+The OBJ Loader will take the location of a source file as the lone parameter and load its contents in their
+entirety into a buffer in memory. This buffer will then be read, line-by-line, storing the data in the propper
+member of a Mesh object. To simplify this, only vertex positions, normals and texture coordinates will be parsed.
+Once the end of the buffer is reached the resulting Mesh object will be returned.
+
+\subsection{Voxelizer}
+
+The Voxelizer's sole task will be to take a mesh and produce a voxelized representation. The Voxelizer will take in 
+a mesh along with a collection of settings for the voxelization as parameters. These settings will include the size 
+of the voxels and whether the voxelizer should fill the interior of the voxelization with voxels or leave it empty.
+Upon calling the Voxelizer with these parameters the algorithm specified in figure \ref{fig:VoxelizationAlgorithm}.
+The resulting voxelization will then be returned as a voxel-mesh object.
+
+\subsection{System}
+
+The System is what will facilitate the glue logic for the Voxelization Application. This will contain all the
+aforementioned modules, along with additional state for running the application. The system will also contain a series 
+of methods dedicated to operating a specific module. These include collecting and processing user input, updating 
+the GUI, rendering the scene, running the voxelizer, and saving voxelizations to a user specified location. More 
+detail of this general flow can be seen in the flow diagram in figure \ref{fig:VoxelizationApplicationFlowDiagram}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{Voxelization Application Flow Diagram}
+  \label{fig:VoxelizationApplicationFlowDiagram}
+\end{figure}
+
+\section{Physics Simulation Application Design}
+
+THe overal structure o fthe physics simulation application will be similar to the Voxelization Application. It will 
+also make use of the rendering, mesh-manager, serialization, and object modules from the shared library. In addition,
+The applicatio will also have a custom GUI, Physics Engine, and overarching "System".
+
+\subsection{GUI}
+
+To facilitate the needs of the application, the GUI will be somewhat more complex than the GUI for the Voxelization 
+Application. THe GUI will be seperated into four sections: object loading, object settings, simulation, and simulation
+controls. A Mockup of the GUI can be seen in figure \ref{fig:PhysicsSimulationGUIMockup}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{Voxelization Application Flow Diagram}
+  \label{fig:PhysicsSimulationGUIMockup}
+\end{figure}
+
+\subsubsection{Oject Loading}
+
+The Object Loading section consists of two UI Elements. A text box for enetering the location of an object file and 
+a button that will be used to tell the application to load the file specified by the text box. The text entry only
+accepts paths relative to the location the application was started from and expects the file to have the ".json" 
+extension in a simple attempt to prevent incorrect files from being loaded, leading to undesired behavior.
+
+\subsubsection{Object Settings}
+
+The Object Settings section contains a number of UI elements that are used to modify characteristics of the object 
+that has been loaded. These include the following: 
+
+\begin{itemize}
+  \item Three number inputs that will modify the object's position
+  \item A number input that will control the mass of the object
+  \item A checkbox that will determine if the object is deformable
+  \item The initial force vector, collected using three number inputes
+\end{itemize}
+
+\subsubsection{Simulation Settings}
+
+The Simulation Settings will consist of two elements. A check-box to enable or disable the bezier-extension and a 
+check-box to enable or disable gravity.
+
+\subsubsection{Simulation Controls}
+
+The Simulation Controls will consist of three buttons labeled "Start Simulation", "Pause Simulation", and 
+"Stop Simulation". As the names imply, "Start Simulation" will be used to begin or resium the simulation, "Pause 
+Simulation" will pause the simulation with its current state, and "Stop Simulation" will halt the simulation and 
+reset the objects to their initial state.
+
+\subsection{Physics Engine}
+
+The Physics Engine will handle everything required for the physics simulation. To facilitate this, the engine will 
+contain a mesh-manager, a map of object settings, a map of physics objects, a map of voxels, and two physics-worlds.
+
+Due to the complexity of designing and implementing a physics engine, an existing open-source engine will be used.
+This engine will provide the physical primitives needed for the simulation.
+
+The engin's mesh-manager will store the modified meshes after deformations have been applied. This will provide a
+straightforward means of rendering the deformed meshes, as the renderer will be able to render the contained 
+meshes by giving it access to the mesh-manager. It also provides a convienient way to reset the state of the meshes by
+copying over values from an untouched mesh-manager.
+
+A map will be used for the Object Settings, Physics Objects, and voxels. As these will primarily be used for 
+maintaining the lifetime of the objects and retrieving them with handles ass needed. So a more complex data structure 
+will not be needed.
+
+The object settings will contain additional information about the objects not contained by the mesh-manager. This 
+includes the object's mass, initial velocity, initial acceleration, and whether the object should be treated as a 
+rigid-body or a soft-body. THese setting will be used in the initialization of the simulation. The afformentioned
+physics objects and voxels also deserve some explenation. THe physics-objects will consist of a single primitive
+from the physics engine. These objects will consist of a single bounding box which will wrap th eextents of the
+underlying voxels. As with the physics-ojects, the voxels will also be represented as simple bounding boxes. These
+simplistic representations also provide a straightforward method for some optimizations for the physics simulation.
+
+
 % Renderer
 
 %% old
 % The renderer will consist of two classes, one to act as a frontend and the other to act as a
-% backend. The frontend will manage all resources associated with the scene. This includes the 
+% backend. The frontend will manage all resources associated with the scene. This includes the
 % tracking of what objects are in the scene, their positions, and their various physical attributes.
-% The frontend will also provide a collection of methods to add and remove objects to the scene and to 
+% The frontend will also provide a collection of methods to add and remove objects to the scene and to
 % draw the current scene. These methods will convert the scene into a collection of handles which the
 % backend will use to draw the scene.
 
@@ -204,7 +332,7 @@ applied to the meshes that will be rendered.
 % Both applications will need a camera which can easily be moved around based on inputs by the user.
 % A single class will be used to fit these needs. This class will manage the position and rotation
 % of the camera. This class will also provide a method to generate the camera matrix for use by the
-% renderer. Several methods will be provided to allow the camera's position to be modified by 
+% renderer. Several methods will be provided to allow the camera's position to be modified by
 % providing a new position vector or by providing a velocity vector. Methods will also be provided for
 % modifying the rotation of the camera by providing rotation matrices or vectors encoding euler angles.
 
@@ -213,11 +341,11 @@ applied to the meshes that will be rendered.
 
 % Some data structures used in voxelization and deformation will be shared between the applications.
 % These include the Bezier curve, Voxel, and the voxel-mesh. The Bezier curve structure will contain
-% the control points that define the curve and the values along the curve that can be used to 
+% the control points that define the curve and the values along the curve that can be used to
 % calculate the position of the vertex that they control. This structure also provides methods for
-% calculating the position of this vertex. The Voxel structure contains a list of Bezier curves, a 
-% list of vertices, a position, a delta position, and its position relative to the center of the 
-% voxel-mesh that contains it. The voxel-mesh contains a mesh object, the extents of the voxel-mesh 
+% calculating the position of this vertex. The Voxel structure contains a list of Bezier curves, a
+% list of vertices, a position, a delta position, and its position relative to the center of the
+% voxel-mesh that contains it. The voxel-mesh contains a mesh object, the extents of the voxel-mesh
 % in voxel space, the size of the voxel-mesh in object space, and a map which contains the voxels and
 % uses their position in voxel space as the key.
 
@@ -242,23 +370,23 @@ The Voxelization application will require several modules for the management of 
 
 %% Old
 % The voxelization application will require the following components: A simple GUI, a mesh loader,
-% a voxelizer, a renderer, and a voxel-mesh serializer. The renderer and voxel-mesh serializer will 
+% a voxelizer, a renderer, and a voxel-mesh serializer. The renderer and voxel-mesh serializer will
 % be provided by the shared library, which is discussed in section \ref{SharedLibrary}. 
 
 % The simple GUI would allow a user to select a mesh to voxelize, specify some parameters for the 
-% voxelizer, and specify a location to save the resulting voxel-mesh. Since the needs of the GUI are 
+% voxelizer, and specify a location to save the resulting voxel-mesh. Since the needs of the GUI are
 % so simple, a complex GUI library won't be needed. So the Dear ImGui library will suffice.
 % % TODO: consider including the mock-up used in the independent study?
 
 % The mesh loader would need to convert the contents of a specified file into a mesh usable by the
 % application. Since there already exists many file formats for the exporting and importing of meshes
-% produced by 3D modeling applications, a custom format won't be used. Preferably, the file format 
+% produced by 3D modeling applications, a custom format won't be used. Preferably, the file format
 % would be simple to reduce the complexity of the design and implementation of the mesh loader. As
 % such, the Wavefront OBJ file format will be used, since it meets the previously stated criteria.
 
 % The voxelizer should take a mesh, loaded by the mesh loader, and convert it into a voxel-mesh. To
 % achieve this, a naive voxelization algorithm will be used. Since the voxels also need to contain
-% information for the Bezier curves, it will also generate this information. The pseudo code for the 
+% information for the Bezier curves, it will also generate this information. The pseudo code for the
 % proposed voxelization algorithm can be seen in figure \ref{fig:VoxelizationAlgorithm}.
 %% end old
 
