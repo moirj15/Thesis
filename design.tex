@@ -289,8 +289,43 @@ includes the object's mass, initial velocity, initial acceleration, and whether 
 rigid-body or a soft-body. THese setting will be used in the initialization of the simulation. The afformentioned
 physics objects and voxels also deserve some explenation. THe physics-objects will consist of a single primitive
 from the physics engine. These objects will consist of a single bounding box which will wrap th eextents of the
-underlying voxels. As with the physics-ojects, the voxels will also be represented as simple bounding boxes. These
-simplistic representations also provide a straightforward method for some optimizations for the physics simulation.
+underlying voxels. As with the physics-ojects, the voxels will also be represented as simple bounding boxes. 
+
+These simplistic representations also provide a straightforward method for some optimizations for the physics simulation.
+We know that there are only two possible states for thesse objects, colliding or non-colliding. So we can 
+respectively enable or disable the simulation of the voxels' movement and update their positions once
+the physics-objects transition from non-colliding to colliding.
+
+A Physics world is the data structure in which the physical primitives will exist. It's also where all the 
+simulations will take place and controls the characterstics of the simulation.
+
+\subsection{System}
+
+Just as the Voxelizer had an overarching "System" which glued the seperate modules togethor, so too will 
+the physics simuator. As with the Voxelizer's system, the physics simulation's system will collect and
+process input, display the UIT, and control the rendering of the objects. In addition, due to the needs of the 
+simulation, a simple state system is also needed.
+
+The State System will consist of three states described as follows:
+\begin{itemize}
+  \item Stopped: This is the initial state of the system. During this state, the simulation is stopped
+        and loading of scens by the user is allowed.
+  \item Running: This is th estate in which the simulation will be run and results of the simulation will be rendered.
+  \item Paused: In this state, the physics simulation is temproarily halted while preserving the positions and 
+        deformations of the objects.
+\end{itemize}
+
+The transition diagram shwon in figure \ref{fig:PhysicsSimulationTransitionDiagram} gives an overview of
+what occurs int he system during the 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5cm]{example-image-a}
+  % \includegraphics[height=5cm]{example-image-a}
+  \caption{Physics Simulation State Transition Diagram}
+  \label{fig:PhysicsSimulationTransitionDiagram}
+\end{figure}
+
 
 
 % Renderer
